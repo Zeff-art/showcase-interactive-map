@@ -1,49 +1,18 @@
-
-
 import os
 import json
-import requests
 import pandas as pd
 import geopandas as gpd
-
 from dash import Dash, dcc, html, Input, Output
 import plotly.graph_objects as go
 
 # =============== 1) 路径设置（服务器/本地通用） ===============
-# 当前文件所在目录
 HERE = os.path.dirname(os.path.abspath(__file__))
-
-# 项目里你自己建一个 data/ 目录，把 NSW_LGA_2025.geojson 放进去
 DATA_DIR = os.path.join(HERE, "data")
 LOCAL_GEOJSON = os.path.join(DATA_DIR, "NSW_LGA_2025.geojson")
 
-# （可选）你之前的 Google Drive 直链
-REMOTE_GEOJSON_URL = (
-    "https://drive.google.com/uc?export=download&id=1ghuKn9kdYmtmfn9rHN-xiIws3Z444Ga5"
-)
-
-
-def load_geojson():
-    """
-    优先用仓库里的 data/NSW_LGA_2025.geojson，
-    没有的话再尝试从远程下载。
-    """
-    if os.path.exists(LOCAL_GEOJSON):
-        print("📂 Using local NSW_LGA_2025.geojson")
-        gdf_local = gpd.read_file(LOCAL_GEOJSON)
-        return gdf_local
-
-    # 如果项目里没放文件，就尝试下载
-    print("🌐 Downloading NSW_LGA_2025.geojson from Google Drive ...")
-    resp = requests.get(REMOTE_GEOJSON_URL)
-    resp.raise_for_status()
-    data = resp.json()
-    gdf_remote = gpd.GeoDataFrame.from_features(data["features"], crs="EPSG:4326")
-    return gdf_remote
-
-
-# 载入地理数据
-gdf = load_geojson()
+# ✅ 直接读取本地文件
+print("📂 Using local NSW_LGA_2025.geojson")
+gdf = gpd.read_file(LOCAL_GEOJSON)
 
 # =============== 2) 保留你原来的几何处理 ===============
 gdf = gdf[gdf["STE_NAME21"] == "New South Wales"]
