@@ -13,6 +13,8 @@ LOCAL_GEOJSON = os.path.join(DATA_DIR, "NSW_LGA_2025.geojson")
 # ✅ 直接读取本地文件
 print("📂 Using local NSW_LGA_2025.geojson")
 gdf = gpd.read_file(LOCAL_GEOJSON)
+gdf.set_crs("EPSG:4326", inplace=True)
+
 
 # =============== 2) 保留你原来的几何处理 ===============
 gdf = gdf[gdf["STE_NAME21"] == "New South Wales"]
