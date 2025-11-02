@@ -7,13 +7,29 @@ import plotly.graph_objects as go
 
 # =============== 1) 路径设置（服务器/本地通用） ===============
 HERE = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(HERE, "data")
-LOCAL_GEOJSON = os.path.join(DATA_DIR, "NSW_LGA_2025.geojson")
+DATA_PATH = os.path.join(HERE, "data", "NSW_LGA_2025.geojson")
 
-# ✅ 直接读取本地文件
 print("📂 Using local NSW_LGA_2025.geojson")
-gdf = gpd.read_file(LOCAL_GEOJSON)
-gdf.set_crs("EPSG:4326", inplace=True)
+
+# ✅ Render 环境兼容模式读取（避免 pyogrio 的 CRS bug）
+import fiona
+from shapely.geometry import shape
+import pyproj
+
+features = []
+with fiona.open(DATA_PATH, encoding="utf-8") as src:
+    for feat in src:
+        geom = shape(feat["geometry"])
+        feat_props = feat["properties"]
+        feat_props["geometry"] = geom
+        features.append(feat_props)
+
+# 构造 GeoDataFrame（完全手动）
+gdf = gpd.GeoDataFrame(features, geometry="geometry")
+
+# ✅ 手动设置坐标系，避免 pyproj 类型冲突
+gdf.set_crs(pyproj.CRS.from_epsg(4326), inplace=True)
+
 
 
 # =============== 2) 保留你原来的几何处理 ===============
